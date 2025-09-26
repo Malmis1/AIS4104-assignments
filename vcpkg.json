@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "test",
+  "dependencies": [
+    "eigen3"
+  ],
+  "features": {
+    "nlopt": {
+      "description": "Download the non-linear optimization library.",
+      "dependencies": [
+        "assimp"
+      ]
+    }
+  }
+}

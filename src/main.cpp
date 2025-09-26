@@ -115,6 +115,33 @@ Eigen::Vector3d euler_zyx_from_rotation_matrix(const Eigen::Matrix3d& r) {
     return Eigen::Vector3d{ rad_to_deg(alpha),rad_to_deg(beta),rad_to_deg(gamma) };
 }
 
+Eigen::VectorXd twist(const Eigen::Vector3d& w, const Eigen::Vector3d& v) {
+    // Equation (3.70) at page 96, MR 3rd print 2019
+    return Eigen::VectorXd{ w,v };
+}
+
+Eigen::VectorXd screw_axis(const Eigen::Vector3d& q, const Eigen::Vector3d& s, double h) {
+    // Equation at page 101, MR 3rd print 2019
+    return Eigen::VectorXd{ s, -skew_symmetric(s) * q + h * s };
+}
+
+Eigen::MatrixXd adjoint_matrix(const Eigen::Matrix4d& tf) {
+    // Definition 3.20 at page 98, MR 3rd print 2019
+    Eigen::Matrix3d r{ {tf(0,0) , tf(0,1), tf(0,2)},
+                            {tf(1,0), tf(1,1), tf(1,2)},
+                            {tf(2,0), tf(2,1), tf(2,2)} };
+    Eigen::Vector3d p{ tf(0,3), tf(1,3), tf(2,3) };
+    Eigen::Matrix3d zeros{ {0,0,0},{0,0,0},{0,0,0} };
+    Eigen::MatrixXd adj_matrix(6, 6);
+    adj_matrix << r, zeros,
+        skew_symmetric(p)* r, r;
+    return adj_matrix;
+}
+
+double cot(double x) {
+    return 1 / (sin(x) / cos(x));
+}
+
 void skew_symmetric_test() {
     Eigen::Matrix3d skew_matrix = skew_symmetric(Eigen::Vector3d{ 0.5, 0.5, 0.707107 });
     std::cout << "Skew-symmetric matrix: " << std::endl;

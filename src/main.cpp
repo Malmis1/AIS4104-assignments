@@ -111,6 +111,25 @@ void transform_vector() {
     std::cout << v_w.transpose() << std::endl;
 }
 
+Eigen::Vector3d euler_zyx_from_rotation_matrix(const Eigen::Matrix3d& r) {
+    // Equations at page 579 Section B.1.1, MR 3rd print 2019
+    double beta;
+    if (r(2, 0) == -1) {
+        // Equal to pi/2
+        beta = acos(0.0);
+    }
+    else if (r(2, 0) == 1) {
+        // Equal to -pi/2
+        beta = -acos(0.0);
+    }
+    else {
+        beta = atan2(-r(2, 0), sqrt(pow(r(0, 0), 2) + pow(r(1, 0), 2)));
+    }
+    double alpha = atan2(r(1, 0), r(0, 0));
+    double gamma = atan2(r(2, 1), r(2, 2));
+    return Eigen::Vector3d{ rad_to_deg(alpha),rad_to_deg(beta),rad_to_deg(gamma) };
+}
+
 void skew_symmetric_test() {
     Eigen::Matrix3d skew_matrix = skew_symmetric(Eigen::Vector3d{ 0.5, 0.5, 0.707107 });
     std::cout << "Skew-symmetric matrix: " << std::endl;
@@ -140,10 +159,17 @@ void transformation_matrix_test() {
     std::cout << transformation_matrix(r, v) << std::endl;
 }
 
+void euler_zyx_from_rotation_matrix_test() {
+    Eigen::Matrix3d r = rotation_matrix_from_euler_zyx(Eigen::Vector3d{ 45, -45.0, 90.0 });
+    std::cout << "Euler zyx from rotation matrix: " << std::endl;
+    std::cout << euler_zyx_from_rotation_matrix(r) << std::endl << std::endl;
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
     transformation_matrix_test();
     transform_vector();
+    euler_zyx_from_rotation_matrix_test();
     return 0;
 }

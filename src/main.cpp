@@ -117,12 +117,16 @@ Eigen::Vector3d euler_zyx_from_rotation_matrix(const Eigen::Matrix3d& r) {
 
 Eigen::VectorXd twist(const Eigen::Vector3d& w, const Eigen::Vector3d& v) {
     // Equation (3.70) at page 96, MR 3rd print 2019
-    return Eigen::VectorXd{ w,v };
+    Eigen::VectorXd vb(6, 1);
+    vb << w, v;
+    return vb;
 }
 
 Eigen::VectorXd screw_axis(const Eigen::Vector3d& q, const Eigen::Vector3d& s, double h) {
     // Equation at page 101, MR 3rd print 2019
-    return Eigen::VectorXd{ s, -skew_symmetric(s) * q + h * s };
+    Eigen::VectorXd v(6, 1);
+    v << s, -skew_symmetric(s) * q + h * s;
+    return v;
 }
 
 Eigen::MatrixXd adjoint_matrix(const Eigen::Matrix4d& tf) {

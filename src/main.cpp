@@ -96,21 +96,6 @@ Eigen::Matrix4d transformation_matrix(const Eigen::Matrix3d& r, const Eigen::Vec
     return matrix;
 }
 
-void transform_vector() {
-    Eigen::Matrix3d e = rotation_matrix_from_euler_zyx(Eigen::Vector3d{ 60.0, 45.0, 0.0 });
-    Eigen::Vector3d p{ 0.0, 0.0, 10.0 };
-    Eigen::Matrix4d T = transformation_matrix(e, p);
-    Eigen::Vector3d v_a{ 2.5, 3.0, -10.0 };
-
-    // Equation (3.65) at page 88, MR 3rd print 2019
-    Eigen::Vector4d  x{ v_a[0], v_a[1], v_a[2], 1.0 };
-    Eigen::Vector4d Tx = T * x;
-    Eigen::Vector3d v_w = { Tx[0], Tx[1], Tx[2] };
-
-    std::cout << "Transform vector: " << std::endl;
-    std::cout << v_w.transpose() << std::endl << std::endl;
-}
-
 Eigen::Vector3d euler_zyx_from_rotation_matrix(const Eigen::Matrix3d& r) {
     // Equations at page 579 Section B.1.1, MR 3rd print 2019
     double beta;
@@ -157,6 +142,21 @@ void transformation_matrix_test() {
     Eigen::Vector3d v{ 1.0, -2.0, 3.0 };
     std::cout << "Transformation_matrix: " << std::endl;
     std::cout << transformation_matrix(r, v) << std::endl << std::endl;
+}
+
+void transform_vector() {
+    Eigen::Matrix3d e = rotation_matrix_from_euler_zyx(Eigen::Vector3d{ 60.0, 45.0, 0.0 });
+    Eigen::Vector3d p{ 0.0, 0.0, 10.0 };
+    Eigen::Matrix4d T = transformation_matrix(e, p);
+    Eigen::Vector3d v_a{ 2.5, 3.0, -10.0 };
+
+    // Equation (3.65) at page 88, MR 3rd print 2019
+    Eigen::Vector4d  x{ v_a[0], v_a[1], v_a[2], 1.0 };
+    Eigen::Vector4d Tx = T * x;
+    Eigen::Vector3d v_w = { Tx[0], Tx[1], Tx[2] };
+
+    std::cout << "Transform vector: " << std::endl;
+    std::cout << v_w.transpose() << std::endl << std::endl;
 }
 
 void euler_zyx_from_rotation_matrix_test() {

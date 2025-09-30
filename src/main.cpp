@@ -86,6 +86,14 @@ Eigen::Matrix3d rotation_matrix_from_euler_zyx(const Eigen::Vector3d& e) {
     return Eigen::Matrix3d::Identity() * r_z * r_y * r_x;
 }
 
+Eigen::Matrix3d rotation_matrix_from_euler_yzx(const Eigen::Vector3d& e) {
+    // See rotation_matrix_from_euler_zyx function
+    Eigen::Matrix3d r_y = rotate_y(e[0]);
+    Eigen::Matrix3d r_z = rotate_z(e[1]);
+    Eigen::Matrix3d r_x = rotate_x(e[2]);
+    return Eigen::Matrix3d::Identity() * r_x * r_y * r_z;
+}
+
 Eigen::Matrix4d transformation_matrix(const Eigen::Matrix3d& r, const Eigen::Vector3d& p) {
     Eigen::Matrix4d matrix;
     // Equation (3.62) at page 87, MR 3rd print 2019
@@ -196,11 +204,26 @@ void euler_zyx_from_rotation_matrix_test() {
     std::cout << euler_zyx_from_rotation_matrix(r) << std::endl << std::endl;
 }
 
+void wrench_body_and_sensor_frame() {
+    Eigen::Vector3d f_w{ -30,0,0 };
+    Eigen::Vector3d m_s{ 0,0,2 };
+    Eigen::Vector3d e_ws{ 60,-60,0 };
+    Eigen::Matrix3d r = rotation_matrix_from_euler_yzx(e_ws);
+    // Equation for moment change of coord frame in summary at page 111, MR 3rd print 2019
+    Eigen::Vector3d m_w = r * m_s;
+    Eigen::Vector3d f_s = r.transpose() * f_w;
+    std::cout << "f_w: " << f_w.transpose() << std::endl;
+    std::cout << "m_w: " << m_w.transpose() << std::endl << std::endl;
+    std::cout << "f_s: " << f_s.transpose() << std::endl;
+    std::cout << "m_s: " << m_s.transpose() << std::endl << std::endl;
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
     transformation_matrix_test();
     transform_vector();
     euler_zyx_from_rotation_matrix_test();
+    wrench_body_and_sensor_frame();
     return 0;
 }

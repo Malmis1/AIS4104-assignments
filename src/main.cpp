@@ -245,7 +245,7 @@ void sum_of_wrenches_in_different_reference_frames_example() {
     Eigen::VectorXd f_f(6, 1);
     f_f << (adjoint_matrix(t_hf).transpose() * f_h) + (adjoint_matrix(t_af).transpose() * f_a);
 
-    std::cout << "Calculate the sum of wrenches expressed in different reference frames" << std::endl;
+    std::cout << "Calculate the sum of wrenches expressed in different reference frames:" << std::endl;
     std::cout << "f_f: " << f_f.transpose() << std::endl << std::endl;
 }
 

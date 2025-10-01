@@ -218,6 +218,30 @@ void wrench_body_and_sensor_frame() {
     std::cout << "m_s: " << m_s.transpose() << std::endl << std::endl;
 }
 
+void sum_of_wrenches_in_different_reference_frames_example() {
+    // Example 3.28 on pages 108-109, MR 3rd print 2019
+    Eigen::VectorXd f_h(6, 1);
+    Eigen::VectorXd f_a(6, 1);
+    f_h << 0, 0, 0, 0, -5, 0;
+    f_a << 0, 0, 0, 0, 0, 1;
+    Eigen::Matrix4d t_hf{
+        {1, 0, 0,-0.1},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1} };
+    Eigen::Matrix4d t_af{
+        {1, 0, 0,-0.25},
+        {0, 0, 1, 0},
+        {0,-1, 0, 0},
+        {0, 0, 0, 1} };
+
+    Eigen::VectorXd f_f(6, 1);
+    f_f << (adjoint_matrix(t_hf).transpose() * f_h) + (adjoint_matrix(t_af).transpose() * f_a);
+
+    std::cout << "Calculate the sum of wrenches expressed in different reference frames" << std::endl;
+    std::cout << "f_f: " << f_f.transpose() << std::endl << std::endl;
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -225,5 +249,6 @@ int main() {
     transform_vector();
     euler_zyx_from_rotation_matrix_test();
     wrench_body_and_sensor_frame();
+    sum_of_wrenches_in_different_reference_frames_example();
     return 0;
 }

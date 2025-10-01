@@ -154,6 +154,13 @@ double cot(double x) {
     return 1 / (sin(x) / cos(x));
 }
 
+Eigen::Matrix3d matrix_exponential(const Eigen::Vector3d& w, double theta) {
+    double radians = deg_to_rad(theta);
+    // Equation (3.51) at page 82, MR 3rd print 2019
+    return Eigen::Matrix3d::Identity() + sin(radians) * skew_symmetric(w)
+        + (1 - cos(radians)) * (skew_symmetric(w) * skew_symmetric(w));
+}
+
 void skew_symmetric_test() {
     Eigen::Matrix3d skew_matrix = skew_symmetric(Eigen::Vector3d{ 0.5, 0.5, 0.707107 });
     std::cout << "Skew-symmetric matrix: " << std::endl;
@@ -242,6 +249,14 @@ void sum_of_wrenches_in_different_reference_frames_example() {
     std::cout << "f_f: " << f_f.transpose() << std::endl << std::endl;
 }
 
+void matrix_exponential_test() {
+    // Example 3.12 on page 82, MR 3rd print 2019
+    Eigen::Vector3d w{ 0, 0.866, 0.5 };
+    double theta = 30;
+    std::cout << "Matrix exponential:" << std::endl;
+    std::cout << "f_f: " << matrix_exponential(w, theta) << std::endl << std::endl;
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -250,5 +265,6 @@ int main() {
     euler_zyx_from_rotation_matrix_test();
     wrench_body_and_sensor_frame();
     sum_of_wrenches_in_different_reference_frames_example();
+    matrix_exponential_test();
     return 0;
 }

@@ -254,7 +254,7 @@ void matrix_exponential_test() {
     Eigen::Vector3d w{ 0, 0.866, 0.5 };
     double theta = 30;
     std::cout << "Matrix exponential:" << std::endl;
-    std::cout << "f_f: " << matrix_exponential(w, theta) << std::endl << std::endl;
+    std::cout << matrix_exponential(w, theta) << std::endl << std::endl;
 }
 
 int main() {

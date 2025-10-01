@@ -161,6 +161,35 @@ Eigen::Matrix3d matrix_exponential(const Eigen::Vector3d& w, double theta) {
         + (1 - cos(radians)) * (skew_symmetric(w) * skew_symmetric(w));
 }
 
+std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
+    // Algorithm from page 85 (Equations (3.58)-(3.61) at pages 85-86), MR 3rd print 2019
+    Eigen::Vector3d w;
+    double theta;
+    if (r == Eigen::Matrix3d::Identity()) {
+        theta = 0;
+    }
+    else {
+        // Built in function in Eigen for Equation (3.54) at page 84, MR 3rd print 2019
+        double trr = r.trace();
+        if (trr == -1) {
+            // Equal to pi
+            theta = acos(0.0) * 2;
+            // Equation (3.58) at page 85, MR 3rd print 2019
+            w = (1 / sqrt(2 * (1 + r(2, 2))))
+                * Eigen::Vector3d{ r(0, 2), r(1, 2), 1 + r(2, 2) };
+        }
+        else {
+            theta = acos((1 / 2) * (trr - 1));
+            // Equations directly above Equation (3.53) at page 84, MR 3rd print 2019
+            double w_1 = ((1 / (2 * sin(theta))) * (r(2, 1) - r(1, 2)));
+            double w_2 = ((1 / (2 * sin(theta))) * (r(0, 2) - r(2, 0)));
+            double w_3 = ((1 / (2 * sin(theta))) * (r(1, 0) - r(0, 1)));
+            w = Eigen::Vector3d{ w_1, w_2, w_3 };
+        }
+    }
+    return std::pair<Eigen::Vector3d, double>{ w, rad_to_deg(theta) };
+}
+
 void skew_symmetric_test() {
     Eigen::Matrix3d skew_matrix = skew_symmetric(Eigen::Vector3d{ 0.5, 0.5, 0.707107 });
     std::cout << "Skew-symmetric matrix: " << std::endl;
@@ -257,6 +286,15 @@ void matrix_exponential_test() {
     std::cout << matrix_exponential(w, theta) << std::endl << std::endl;
 }
 
+void matrix_logarithm_test() {
+    Eigen::Matrix3d r = rotation_matrix_from_euler_zyx(Eigen::Vector3d{ 45.0, -45.0, 90.0 });
+
+    std::cout << "Matrix logarithm:" << std::endl;
+    std::cout << "w: " << matrix_logarithm(r).first.transpose() << " | theta: " << matrix_logarithm(r).second << std::endl;
+    std::cout << "Skew-symmetric of w and theta:" << std::endl;
+    std::cout << skew_symmetric(matrix_logarithm(r).first) * matrix_logarithm(r).second << std::endl << std::endl;
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -266,5 +304,6 @@ int main() {
     wrench_body_and_sensor_frame();
     sum_of_wrenches_in_different_reference_frames_example();
     matrix_exponential_test();
+    matrix_logarithm_test();
     return 0;
 }

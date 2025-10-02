@@ -187,7 +187,7 @@ std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
             w = Eigen::Vector3d{ w_1, w_2, w_3 };
         }
     }
-    return std::pair<Eigen::Vector3d, double>{ w, rad_to_deg(theta) };
+    return std::pair<Eigen::Vector3d, double>{ w, theta };
 }
 
 Eigen::Matrix4d matrix_exponential(const Eigen::Vector3d& w, const Eigen::Vector3d& v, double theta) {
@@ -208,6 +208,30 @@ Eigen::Matrix4d matrix_exponential(const Eigen::Vector3d& w, const Eigen::Vector
     }
 
     return m_e;
+}
+
+std::pair<Eigen::VectorXd, double> matrix_logarithm(const Eigen::Matrix4d& t) {
+    Eigen::Matrix3d r = t.block<3, 3>(0, 0);
+    Eigen::Vector3d p = t.block<3, 1>(0, 3);
+
+    // Algorithm in section 3.3.3.2 on page 104, MR 3rd print 2019
+    Eigen::Vector3d w;
+    Eigen::Vector3d v;
+    double h = 0;
+    double theta;
+    if (r == Eigen::Matrix3d::Identity()) {
+        w = Eigen::Vector3d::Zero();
+        v = p / p.norm();
+        theta = p.norm();
+    }
+    else {
+        std::pair<Eigen::Vector3d, double> m_l = matrix_logarithm(r);
+        w = m_l.first;
+        theta = m_l.second;
+        Eigen::Matrix3d skew_w = skew_symmetric(w);
+        v = ((1 / theta) * Eigen::Matrix3d::Identity() - (1 / 2) * skew_w + ((1 / theta) - (1 / 2) * cot(theta / 2)) * skew_w * skew_w) * p;
+    }
+    return std::pair<Eigen::VectorXd, double>{ screw_axis(w, v, h), theta };
 }
 
 void skew_symmetric_test() {
@@ -312,7 +336,7 @@ void matrix_logarithm_test() {
     std::cout << "Matrix logarithm:" << std::endl;
     std::cout << "w: " << matrix_logarithm(r).first.transpose() << " | theta: " << matrix_logarithm(r).second << std::endl;
     std::cout << "Skew-symmetric of w and theta:" << std::endl;
-    std::cout << skew_symmetric(matrix_logarithm(r).first) * matrix_logarithm(r).second << std::endl << std::endl;
+    std::cout << skew_symmetric(matrix_logarithm(r).first) * rad_to_deg(matrix_logarithm(r).second) << std::endl << std::endl;
 }
 
 int main() {

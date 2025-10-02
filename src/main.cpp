@@ -234,6 +234,15 @@ std::pair<Eigen::VectorXd, double> matrix_logarithm(const Eigen::Matrix4d& t) {
     return std::pair<Eigen::VectorXd, double>{ screw_axis(w, v, h), theta };
 }
 
+void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
+    Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
+    Eigen::Vector3d p = tf.block<3, 1>(0, 3);
+    Eigen::Vector3d e = euler_zyx_from_rotation_matrix(r);
+    std::cout << "Pose \"" << label << "\":" << std::endl;
+    std::cout << "Euler ZYX: " << e.transpose() << std::endl;
+    std::cout << "Linear position: " << p.transpose() << std::endl << std::endl;
+}
+
 void skew_symmetric_test() {
     Eigen::Matrix3d skew_matrix = skew_symmetric(Eigen::Vector3d{ 0.5, 0.5, 0.707107 });
     std::cout << "Skew-symmetric matrix: " << std::endl;

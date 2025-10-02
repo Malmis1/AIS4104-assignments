@@ -252,7 +252,7 @@ Eigen::Matrix4d planar_3r_fk_screw(const std::vector<double>& joint_positions) {
     double l2 = l1;
     double l3 = l2;
 
-    // Example 4.2 on page 142, MR 3rd print 2019
+    // Example 4.2 from page 142, MR 3rd print 2019
     Eigen::Vector3d w1{ 0,0,1 };
     Eigen::Vector3d v1{ 0, 0, 0 };
     Eigen::Vector3d w2{ 0,0,1 };

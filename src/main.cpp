@@ -234,6 +234,19 @@ std::pair<Eigen::VectorXd, double> matrix_logarithm(const Eigen::Matrix4d& t) {
     return std::pair<Eigen::VectorXd, double>{ screw_axis(w, v, h), theta };
 }
 
+Eigen::Matrix4d planar_3r_fk_transform(const std::vector<double>& joint_positions) {
+    double l1 = 10.0;
+    double l2 = l1;
+    double l3 = l2;
+    // Equation (4.5) at page 136, MR 3rd print 2019
+    Eigen::Matrix4d t_01 = transformation_matrix(rotate_z(joint_positions[0]), Eigen::Vector3d::Zero());
+    Eigen::Matrix4d t_12 = transformation_matrix(rotate_z(joint_positions[1]), Eigen::Vector3d{ l1,0,0 });
+    Eigen::Matrix4d t_23 = transformation_matrix(rotate_z(joint_positions[2]), Eigen::Vector3d{ l2,0,0 });
+    Eigen::Matrix4d t_34 = transformation_matrix(Eigen::Matrix3d::Identity(), Eigen::Vector3d{ l3,0,0 });
+    // Equation (4.4) at page 135, MR 3rd print 2019
+    return t_01 * t_12 * t_23 * t_34;
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);
@@ -348,6 +361,21 @@ void matrix_logarithm_test() {
     std::cout << skew_symmetric(matrix_logarithm(r).first) * rad_to_deg(matrix_logarithm(r).second) << std::endl << std::endl;
 }
 
+void planar_3r_fk_transform_test() {
+    std::vector<std::vector<double>> joint_configurations = {
+        {0.0, 0.0, 0.0},
+        {90.0, 0.0, 0.0},
+        {0.0, 90.0, 0.0},
+        {0.0, 0.0, 90.0},
+        {10.0, -15.0, 2.75}
+    };
+    std::cout << "Planar 3R FK Transform:" << std::endl;
+    for (size_t i = 0; i < joint_configurations.size(); i++) {
+        Eigen::Matrix4d tf = planar_3r_fk_transform(joint_configurations[i]);
+        print_pose("Joint " + std::to_string(i + 1), tf);
+    }
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -358,5 +386,6 @@ int main() {
     sum_of_wrenches_in_different_reference_frames_example();
     matrix_exponential_test();
     matrix_logarithm_test();
+    planar_3r_fk_transform_test();
     return 0;
 }

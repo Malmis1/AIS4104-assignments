@@ -268,6 +268,42 @@ Eigen::Matrix4d planar_3r_fk_screw(const std::vector<double>& joint_positions) {
     return e_1 * e_2 * e_3 * m;
 }
 
+Eigen::Matrix4d ur3e_fk_screw(const std::vector<double>& joint_positions) {
+    double l1 = 243.5;
+    double l2 = 213.2;
+    double wi1 = 131.05;
+    double wi2 = 92.1;
+    double h1 = 151.8;
+    double h2 = 85.35;
+
+    // Example 4.5 from page 145, MR 3rd print 2019
+    Eigen::Vector3d w1{ 0, 0, 1 };
+    Eigen::Vector3d v1{ 0, 0, 0 };
+    Eigen::Vector3d w2{ 0, 1, 0 };
+    Eigen::Vector3d v2{ -h1, 0, 0 };
+    Eigen::Vector3d w3{ 0, 1, 0 };
+    Eigen::Vector3d v3{ -h1, 0, l1 };
+    Eigen::Vector3d w4{ 0, 1, 0 };
+    Eigen::Vector3d v4{ -h1, 0, 0 };
+    Eigen::Vector3d w5{ 0, 0, -1 };
+    Eigen::Vector3d v5{ -wi1, l1 + l2, 0 };
+    Eigen::Vector3d w6{ 0, 1, 0 };
+    Eigen::Vector3d v6{ h2 - h1, 0, l1 + l2 };
+
+    Eigen::Matrix4d m{ {-1, 0, 0, l1 + l2},
+                   {0, 0, 1, wi1 + wi2},
+                   {0, 1, 0, h1 - h2},
+                   {0, 0, 0, 1} };
+    Eigen::Matrix4d e_1 = matrix_exponential(w1, v1, joint_positions[0]);
+    Eigen::Matrix4d e_2 = matrix_exponential(w2, v2, joint_positions[1]);
+    Eigen::Matrix4d e_3 = matrix_exponential(w3, v3, joint_positions[2]);
+    Eigen::Matrix4d e_4 = matrix_exponential(w4, v4, joint_positions[3]);
+    Eigen::Matrix4d e_5 = matrix_exponential(w5, v5, joint_positions[4]);
+    Eigen::Matrix4d e_6 = matrix_exponential(w6, v6, joint_positions[5]);
+
+    return e_1 * e_2 * e_3 * e_4 * e_5 * e_6 * m;
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);
@@ -412,6 +448,19 @@ void planar_3r_fk_screw_test() {
     }
 }
 
+void ur3e_fk_screw_test() {
+    std::vector<std::vector<double>> joint_configurations = {
+        {0.0, 0.0, 0.0, -90.0, 0.0, 0.0},
+        {0.0, -180.0, 0.0, 0.0, 0.0, 0.0},
+        {0.0, -90.0, 0.0, 0.0, 0.0, 0.0}
+    };
+    std::cout << "Planar 3R FK Transform using PoE:" << std::endl;
+    for (size_t i = 0; i < joint_configurations.size(); i++) {
+        Eigen::Matrix4d tf = ur3e_fk_screw(joint_configurations[i]);
+        print_pose("Joint " + std::to_string(i + 1), tf);
+    }
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -424,5 +473,6 @@ int main() {
     matrix_logarithm_test();
     planar_3r_fk_transform_test();
     planar_3r_fk_screw_test();
+    ur3e_fk_screw_test();
     return 0;
 }

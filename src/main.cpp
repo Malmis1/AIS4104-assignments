@@ -190,6 +190,26 @@ std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
     return std::pair<Eigen::Vector3d, double>{ w, rad_to_deg(theta) };
 }
 
+Eigen::Matrix4d matrix_exponential(const Eigen::Vector3d& w, const Eigen::Vector3d& v, double theta) {
+    Eigen::Matrix3d skew_w = skew_symmetric(w);
+    Eigen::Matrix4d m_e;
+    double radians = deg_to_rad(theta);
+
+    // Proposition 3.25 at page 103, MR 3rd print 2019
+    if (w.norm() == 1) {
+        Eigen::Matrix3d r = matrix_exponential(w, theta);
+        Eigen::Vector3d p = (Eigen::Matrix3d::Identity() * radians + (1 - cos(radians)) * skew_w + (radians - sin(radians)) * skew_w * skew_w) * v;
+        m_e = transformation_matrix(r, p);
+    }
+    else if ((w.norm() == 0) && (v.norm() == 1)) {
+        Eigen::Matrix3d r = Eigen::Matrix3d::Identity();
+        Eigen::Vector3d p = v * theta;
+        m_e = transformation_matrix(r, p);
+    }
+
+    return m_e;
+}
+
 void skew_symmetric_test() {
     Eigen::Matrix3d skew_matrix = skew_symmetric(Eigen::Vector3d{ 0.5, 0.5, 0.707107 });
     std::cout << "Skew-symmetric matrix: " << std::endl;

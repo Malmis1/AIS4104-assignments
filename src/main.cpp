@@ -269,8 +269,8 @@ Eigen::Matrix4d planar_3r_fk_screw(const std::vector<double>& joint_positions) {
 }
 
 Eigen::Matrix4d ur3e_fk_screw(const std::vector<double>& joint_positions) {
-    double l1 = 243.5;
-    double l2 = 213.2;
+    double l1 = -243.5;
+    double l2 = -213.2;
     double wi1 = 131.05;
     double wi2 = 92.1;
     double h1 = 151.8;
@@ -302,6 +302,43 @@ Eigen::Matrix4d ur3e_fk_screw(const std::vector<double>& joint_positions) {
     Eigen::Matrix4d e_6 = matrix_exponential(w6, v6, joint_positions[5]);
 
     return e_1 * e_2 * e_3 * e_4 * e_5 * e_6 * m;
+}
+
+Eigen::Matrix4d ur3e_fk_transform(const std::vector<double>& joint_positions) {
+    double l1 = -243.5;
+    double l2 = -213.2;
+    double wi1 = 131.05;
+    double wi2 = 92.1;
+    double h1 = 151.8;
+    double h2 = 85.35;
+
+    // Based on Figure 4.6 (right) on page 146, MR 3rd print 2019
+    Eigen::Matrix3d r_01 = rotate_z(joint_positions[0]);
+    Eigen::Matrix3d r_12 = rotate_y(joint_positions[1]);
+    Eigen::Matrix3d r_23 = rotate_y(-joint_positions[2]);
+    Eigen::Matrix3d r_34 = rotate_y(joint_positions[3]);
+    Eigen::Matrix3d r_45 = rotate_z(-joint_positions[4]);
+    Eigen::Matrix3d r_56 = rotate_y(joint_positions[5]);
+
+    // Based on Figure 4.6 (right) on page 146, MR 3rd print 2019
+    Eigen::Vector3d p_01{ 0, 0, 0 };
+    Eigen::Vector3d p_12{ 0, wi1, h1 };
+    Eigen::Vector3d p_23{ l1, 0, 0 };
+    Eigen::Vector3d p_34{ l2, 0, 0 };
+    Eigen::Vector3d p_45{ 0, 0, -h2 };
+    Eigen::Vector3d p_56{ 0, wi2, 0 };
+    Eigen::Vector3d p_67{ 0, 0, 0 };
+
+    Eigen::Matrix4d t_01 = transformation_matrix(r_01, p_01);
+    Eigen::Matrix4d t_12 = transformation_matrix(r_12, p_12);
+    Eigen::Matrix4d t_23 = transformation_matrix(r_23, p_23);
+    Eigen::Matrix4d t_34 = transformation_matrix(r_34, p_34);
+    Eigen::Matrix4d t_45 = transformation_matrix(r_45, p_45);
+    Eigen::Matrix4d t_56 = transformation_matrix(r_56, p_56);
+    // Parity with m matrix from PoE implementation
+    Eigen::Matrix4d t_67 = transformation_matrix(Eigen::Matrix3d{ {-1,0,0},{0,0,1},{0,1,0} }, p_67);
+
+    return t_01 * t_12 * t_23 * t_34 * t_45 * t_56 * t_67;
 }
 
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
@@ -461,6 +498,20 @@ void ur3e_fk_screw_test() {
     }
 }
 
+void ur3e_fk_transform_test() {
+
+    std::vector<std::vector<double>> joint_configurations = {
+        {0.0, 0.0, 0.0, -90.0, 0.0, 0.0},
+        {0.0, -180.0, 0.0, 0.0, 0.0, 0.0},
+        {0.0, -90.0, 0.0, 0.0, 0.0, 0.0}
+    };
+    std::cout << "Planar 3R FK Transform using PoE:" << std::endl;
+    for (size_t i = 0; i < joint_configurations.size(); i++) {
+        Eigen::Matrix4d tf = ur3e_fk_transform(joint_configurations[i]);
+        print_pose("Joint " + std::to_string(i + 1), tf);
+    }
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -474,5 +525,6 @@ int main() {
     planar_3r_fk_transform_test();
     planar_3r_fk_screw_test();
     ur3e_fk_screw_test();
+    ur3e_fk_transform_test();
     return 0;
 }

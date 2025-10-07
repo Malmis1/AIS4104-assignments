@@ -495,7 +495,7 @@ void ur3e_fk_screw_test() {
     std::cout << "Planar 3R FK Transform using PoE:" << std::endl;
     for (size_t i = 0; i < joint_configurations.size(); i++) {
         Eigen::Matrix4d tf = ur3e_fk_screw(joint_configurations[i]);
-        print_pose("Joint " + std::to_string(i + 1), tf);
+        print_pose("Joint configuration " + std::to_string(i + 1), tf);
     }
 }
 
@@ -509,7 +509,7 @@ void ur3e_fk_transform_test() {
     std::cout << "Planar 3R FK Transform using PoE:" << std::endl;
     for (size_t i = 0; i < joint_configurations.size(); i++) {
         Eigen::Matrix4d tf = ur3e_fk_transform(joint_configurations[i]);
-        print_pose("Joint " + std::to_string(i + 1), tf);
+        print_pose("Joint configuration " + std::to_string(i + 1), tf);
     }
 }
 

@@ -312,7 +312,7 @@ Eigen::Matrix4d ur3e_fk_transform(const std::vector<double>& joint_positions) {
     double h1 = 151.8;
     double h2 = 85.35;
 
-    // Based on Figure 4.6 (right) on page 146, MR 3rd print 2019
+    // Based on Figure 4.6 (right) on page 146 and Equation (4.5) on page 136, MR 3rd print 2019
     Eigen::Matrix3d r_01 = rotate_z(joint_positions[0]);
     Eigen::Matrix3d r_12 = rotate_y(joint_positions[1]);
     Eigen::Matrix3d r_23 = rotate_y(-joint_positions[2]);
@@ -338,6 +338,7 @@ Eigen::Matrix4d ur3e_fk_transform(const std::vector<double>& joint_positions) {
     // Parity with m matrix from PoE implementation
     Eigen::Matrix4d t_67 = transformation_matrix(Eigen::Matrix3d{ {-1,0,0},{0,0,1},{0,1,0} }, p_67);
 
+    // Equation (4.4) on page 135, MR 3rd print 2019
     return t_01 * t_12 * t_23 * t_34 * t_45 * t_56 * t_67;
 }
 

@@ -500,7 +500,6 @@ void ur3e_fk_screw_test() {
 }
 
 void ur3e_fk_transform_test() {
-
     std::vector<std::vector<double>> joint_configurations = {
         {0.0, 0.0, 0.0, -90.0, 0.0, 0.0},
         {0.0, -180.0, 0.0, 0.0, 0.0, 0.0},

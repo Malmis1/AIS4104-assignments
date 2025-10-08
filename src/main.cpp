@@ -62,7 +62,7 @@ Eigen::Matrix3d rotation_matrix_from_axis_angle(const Eigen::Vector3d& axis, dou
     Eigen::Matrix3d matrix;
     double radians = deg_to_rad(degrees);
     // Equations on page 72 and Equation (3.52) on page 84, MR 3rd print 2019
-    double minus_cos = (1 - std::cos(radians));
+    double minus_cos = (1.0 - std::cos(radians));
     matrix <<
         std::cos(radians) + std::pow(axis[0], 2) * minus_cos,
         axis[0] * axis[1] * minus_cos - axis[2] * std::sin(radians),
@@ -157,7 +157,7 @@ Eigen::Matrix3d matrix_exponential(const Eigen::Vector3d& w, double theta) {
     double radians = deg_to_rad(theta);
     // Equation (3.51) on page 82, MR 3rd print 2019
     return Eigen::Matrix3d::Identity() + std::sin(radians) * skew_symmetric(w)
-        + (1 - std::cos(radians)) * (skew_symmetric(w) * skew_symmetric(w));
+        + (1.0 - std::cos(radians)) * (skew_symmetric(w) * skew_symmetric(w));
 }
 
 std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
@@ -165,24 +165,24 @@ std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
     Eigen::Vector3d w;
     double theta;
     if (r == Eigen::Matrix3d::Identity()) {
-        theta = 0;
+        theta = 0.0;
     }
     else {
         // Built in function in Eigen for Equation (3.54) on page 84, MR 3rd print 2019
         double trr = r.trace();
         if (trr == -1) {
             // Equal to pi
-            theta = std::acos(0.0) * 2;
+            theta = std::acos(0.0) * 2.0;
             // Equation (3.58) on page 85, MR 3rd print 2019
-            w = (1 / std::sqrt(2 * (1 + r(2, 2))))
-                * Eigen::Vector3d{ r(0, 2), r(1, 2), 1 + r(2, 2) };
+            w = (1.0 / std::sqrt(2.0 * (1.0 + r(2, 2))))
+                * Eigen::Vector3d{ r(0, 2), r(1, 2), 1.0 + r(2, 2) };
         }
         else {
-            theta = std::acos((1 / 2) * (trr - 1));
+            theta = std::acos((1.0 / 2.0) * (trr - 1.0));
             // Equations directly above Equation (3.53) on page 84, MR 3rd print 2019
-            double w_1 = ((1 / (2 * std::sin(theta))) * (r(2, 1) - r(1, 2)));
-            double w_2 = ((1 / (2 * std::sin(theta))) * (r(0, 2) - r(2, 0)));
-            double w_3 = ((1 / (2 * std::sin(theta))) * (r(1, 0) - r(0, 1)));
+            double w_1 = ((1.0 / (2.0 * std::sin(theta))) * (r(2, 1) - r(1, 2)));
+            double w_2 = ((1.0 / (2.0 * std::sin(theta))) * (r(0, 2) - r(2, 0)));
+            double w_3 = ((1.0 / (2.0 * std::sin(theta))) * (r(1, 0) - r(0, 1)));
             w = Eigen::Vector3d{ w_1, w_2, w_3 };
         }
     }
@@ -216,7 +216,7 @@ std::pair<Eigen::VectorXd, double> matrix_logarithm(const Eigen::Matrix4d& t) {
     // Algorithm in section 3.3.3.2 on page 104, MR 3rd print 2019
     Eigen::Vector3d w;
     Eigen::Vector3d v;
-    double h = 0;
+    double h = 0.0;
     double theta;
     if (r == Eigen::Matrix3d::Identity()) {
         w = Eigen::Vector3d::Zero();
@@ -228,7 +228,8 @@ std::pair<Eigen::VectorXd, double> matrix_logarithm(const Eigen::Matrix4d& t) {
         w = m_l.first;
         theta = m_l.second;
         Eigen::Matrix3d skew_w = skew_symmetric(w);
-        v = ((1 / theta) * Eigen::Matrix3d::Identity() - (1 / 2) * skew_w + ((1 / theta) - (1 / 2) * cot(theta / 2)) * skew_w * skew_w) * p;
+        v = ((1 / theta) * Eigen::Matrix3d::Identity() - (1.0 / 2.0) * skew_w
+            + ((1.0 / theta) - (1.0 / 2.0) * cot(theta / 2.0)) * skew_w * skew_w) * p;
     }
     return std::pair<Eigen::VectorXd, double>{ screw_axis(w, v, h), theta };
 }
@@ -395,7 +396,7 @@ void transform_vector() {
 }
 
 void euler_zyx_from_rotation_matrix_test() {
-    Eigen::Matrix3d r = rotation_matrix_from_euler_zyx(Eigen::Vector3d{ 45, -45.0, 90.0 });
+    Eigen::Matrix3d r = rotation_matrix_from_euler_zyx(Eigen::Vector3d{ 45.0, -45.0, 90.0 });
     std::cout << "Euler zyx from rotation matrix: " << std::endl;
     std::cout << euler_zyx_from_rotation_matrix(r) << std::endl << std::endl;
 }

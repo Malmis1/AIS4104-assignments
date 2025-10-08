@@ -31,8 +31,8 @@ Eigen::Matrix3d rotate_x(double degrees) {
     // Equations on page 72, MR 3rd print 2019
     matrix <<
         1, 0, 0,
-        0, cos(radians), -sin(radians),
-        0, sin(radians), cos(radians);
+        0, std::cos(radians), -std::sin(radians),
+        0, std::sin(radians), std::cos(radians);
     return matrix;
 }
 
@@ -41,9 +41,9 @@ Eigen::Matrix3d rotate_y(double degrees) {
     double radians = deg_to_rad(degrees);
     // Equations on page 72, MR 3rd print 2019
     matrix <<
-        cos(radians), 0, sin(radians),
+        std::cos(radians), 0, std::sin(radians),
         0, 1, 0,
-        -sin(radians), 0, cos(radians);
+        -std::sin(radians), 0, std::cos(radians);
     return matrix;
 }
 
@@ -52,8 +52,8 @@ Eigen::Matrix3d rotate_z(double degrees) {
     double radians = deg_to_rad(degrees);
     // Equations on page 72, MR 3rd print 2019
     matrix <<
-        cos(radians), -sin(radians), 0,
-        sin(radians), cos(radians), 0,
+        std::cos(radians), -std::sin(radians), 0,
+        std::sin(radians), std::cos(radians), 0,
         0, 0, 1;
     return matrix;
 }
@@ -62,19 +62,19 @@ Eigen::Matrix3d rotation_matrix_from_axis_angle(const Eigen::Vector3d& axis, dou
     Eigen::Matrix3d matrix;
     double radians = deg_to_rad(degrees);
     // Equations on page 72 and Equation (3.52) on page 84, MR 3rd print 2019
-    double minus_cos = (1 - cos(radians));
+    double minus_cos = (1 - std::cos(radians));
     matrix <<
-        cos(radians) + pow(axis[0], 2) * minus_cos,
-        axis[0] * axis[1] * minus_cos - axis[2] * sin(radians),
-        axis[0] * axis[2] * minus_cos + axis[1] * sin(radians),
+        std::cos(radians) + std::pow(axis[0], 2) * minus_cos,
+        axis[0] * axis[1] * minus_cos - axis[2] * std::sin(radians),
+        axis[0] * axis[2] * minus_cos + axis[1] * std::sin(radians),
 
-        axis[0] * axis[1] * minus_cos + axis[2] * sin(radians),
-        cos(radians) + pow(axis[1], 2) * minus_cos,
-        axis[1] * axis[2] * minus_cos - axis[0] * sin(radians),
+        axis[0] * axis[1] * minus_cos + axis[2] * std::sin(radians),
+        std::cos(radians) + std::pow(axis[1], 2) * minus_cos,
+        axis[1] * axis[2] * minus_cos - axis[0] * std::sin(radians),
 
-        axis[0] * axis[2] * minus_cos - axis[1] * sin(radians),
-        axis[1] * axis[2] * minus_cos + axis[0] * sin(radians),
-        cos(radians) + pow(axis[2], 2) * minus_cos;
+        axis[0] * axis[2] * minus_cos - axis[1] * std::sin(radians),
+        axis[1] * axis[2] * minus_cos + axis[0] * std::sin(radians),
+        std::cos(radians) + std::pow(axis[2], 2) * minus_cos;
     return matrix;
 }
 
@@ -108,17 +108,17 @@ Eigen::Vector3d euler_zyx_from_rotation_matrix(const Eigen::Matrix3d& r) {
     double beta;
     if (r(2, 0) == -1) {
         // Equal to pi/2
-        beta = acos(0.0);
+        beta = std::acos(0.0);
     }
     else if (r(2, 0) == 1) {
         // Equal to -pi/2
-        beta = -acos(0.0);
+        beta = -std::acos(0.0);
     }
     else {
-        beta = atan2(-r(2, 0), sqrt(pow(r(0, 0), 2) + pow(r(1, 0), 2)));
+        beta = std::atan2(-r(2, 0), std::sqrt(std::pow(r(0, 0), 2) + std::pow(r(1, 0), 2)));
     }
-    double alpha = atan2(r(1, 0), r(0, 0));
-    double gamma = atan2(r(2, 1), r(2, 2));
+    double alpha = std::atan2(r(1, 0), r(0, 0));
+    double gamma = std::atan2(r(2, 1), r(2, 2));
     return Eigen::Vector3d{ rad_to_deg(alpha),rad_to_deg(beta),rad_to_deg(gamma) };
 }
 
@@ -150,14 +150,14 @@ Eigen::MatrixXd adjoint_matrix(const Eigen::Matrix4d& tf) {
 }
 
 double cot(double x) {
-    return 1 / (sin(x) / cos(x));
+    return 1 / (std::sin(x) / std::cos(x));
 }
 
 Eigen::Matrix3d matrix_exponential(const Eigen::Vector3d& w, double theta) {
     double radians = deg_to_rad(theta);
     // Equation (3.51) on page 82, MR 3rd print 2019
-    return Eigen::Matrix3d::Identity() + sin(radians) * skew_symmetric(w)
-        + (1 - cos(radians)) * (skew_symmetric(w) * skew_symmetric(w));
+    return Eigen::Matrix3d::Identity() + std::sin(radians) * skew_symmetric(w)
+        + (1 - std::cos(radians)) * (skew_symmetric(w) * skew_symmetric(w));
 }
 
 std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
@@ -172,17 +172,17 @@ std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
         double trr = r.trace();
         if (trr == -1) {
             // Equal to pi
-            theta = acos(0.0) * 2;
+            theta = std::acos(0.0) * 2;
             // Equation (3.58) on page 85, MR 3rd print 2019
-            w = (1 / sqrt(2 * (1 + r(2, 2))))
+            w = (1 / std::sqrt(2 * (1 + r(2, 2))))
                 * Eigen::Vector3d{ r(0, 2), r(1, 2), 1 + r(2, 2) };
         }
         else {
-            theta = acos((1 / 2) * (trr - 1));
+            theta = std::acos((1 / 2) * (trr - 1));
             // Equations directly above Equation (3.53) on page 84, MR 3rd print 2019
-            double w_1 = ((1 / (2 * sin(theta))) * (r(2, 1) - r(1, 2)));
-            double w_2 = ((1 / (2 * sin(theta))) * (r(0, 2) - r(2, 0)));
-            double w_3 = ((1 / (2 * sin(theta))) * (r(1, 0) - r(0, 1)));
+            double w_1 = ((1 / (2 * std::sin(theta))) * (r(2, 1) - r(1, 2)));
+            double w_2 = ((1 / (2 * std::sin(theta))) * (r(0, 2) - r(2, 0)));
+            double w_3 = ((1 / (2 * std::sin(theta))) * (r(1, 0) - r(0, 1)));
             w = Eigen::Vector3d{ w_1, w_2, w_3 };
         }
     }
@@ -197,7 +197,7 @@ Eigen::Matrix4d matrix_exponential(const Eigen::Vector3d& w, const Eigen::Vector
     // Proposition 3.25 on page 103, MR 3rd print 2019
     if (w.norm() == 1) {
         Eigen::Matrix3d r = matrix_exponential(w, theta);
-        Eigen::Vector3d p = (Eigen::Matrix3d::Identity() * radians + (1 - cos(radians)) * skew_w + (radians - sin(radians)) * skew_w * skew_w) * v;
+        Eigen::Vector3d p = (Eigen::Matrix3d::Identity() * radians + (1 - std::cos(radians)) * skew_w + (radians - std::sin(radians)) * skew_w * skew_w) * v;
         m_e = transformation_matrix(r, p);
     }
     else if ((w.norm() == 0) && (v.norm() == 1)) {

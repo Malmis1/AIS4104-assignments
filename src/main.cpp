@@ -95,12 +95,11 @@ Eigen::Matrix3d rotation_matrix_from_euler_yzx(const Eigen::Vector3d& e) {
 }
 
 Eigen::Matrix4d transformation_matrix(const Eigen::Matrix3d& r, const Eigen::Vector3d& p) {
-    Eigen::Matrix4d matrix;
+    Eigen::Matrix4d matrix = Eigen::Matrix4d::Zero();
     // Equation (3.62) on page 87, MR 3rd print 2019
-    matrix << r(0, 0), r(0, 1), r(0, 2), p[0],
-        r(1, 0), r(1, 1), r(1, 2), p[1],
-        r(2, 0), r(2, 1), r(2, 2), p[2],
-        0, 0, 0, 1;
+    matrix.block<3, 3>(0, 0) = r;
+    matrix.block<3, 1>(0, 3) = p;
+    matrix(3, 3) = 1;
     return matrix;
 }
 

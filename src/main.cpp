@@ -2,6 +2,8 @@
 
 #include <Eigen/Dense>
 
+#include <numbers>
+
 double deg_to_rad(double degrees) {
     return degrees * 0.0174532925;
 }
@@ -171,8 +173,7 @@ std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
         // Built in function in Eigen for Equation (3.54) on page 84, MR 3rd print 2019
         double trr = r.trace();
         if (trr == -1) {
-            // Equal to pi
-            theta = std::acos(0.0) * 2.0;
+            theta = std::numbers::pi;
             // Equation (3.58) on page 85, MR 3rd print 2019
             w = (1.0 / std::sqrt(2.0 * (1.0 + r(2, 2))))
                 * Eigen::Vector3d{ r(0, 2), r(1, 2), 1.0 + r(2, 2) };

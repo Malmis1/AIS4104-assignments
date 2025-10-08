@@ -21,7 +21,7 @@ Eigen::Matrix3d rotation_matrix_from_frame_axes(const Eigen::Vector3d& x, const 
     const Eigen::Vector3d& z) {
     Eigen::Matrix3d matrix;
     // Equation (3.16) on page 65, MR 3rd print 2019
-    matrix << x, y, z;
+    matrix << x.normalized(), y.normalized(), z.normalized();
     return matrix;
 }
 

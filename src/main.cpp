@@ -343,6 +343,10 @@ Eigen::Matrix4d ur3e_fk_transform(const std::vector<double>& joint_positions) {
     return t_01 * t_12 * t_23 * t_34 * t_45 * t_56 * t_67;
 }
 
+Eigen::VectorXd std_vector_to_eigen(const std::vector<double>& v) {
+    return Eigen::VectorXd::Map(&v[0], v.size());
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);

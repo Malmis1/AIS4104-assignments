@@ -347,6 +347,16 @@ Eigen::VectorXd std_vector_to_eigen(const std::vector<double>& v) {
     return Eigen::VectorXd::Map(&v[0], v.size());
 }
 
+bool is_average_below_eps(const std::vector<double>& values, double eps = 10e-7, uint8_t n_values = 5u) {
+    double sum = 0.0;
+
+    for (size_t i = values.size() - n_values; i < values.size(); i++) {
+        sum += values[i];
+    }
+
+    return (sum / n_values) < eps;
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);

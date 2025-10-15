@@ -447,6 +447,7 @@ void wrench_body_and_sensor_frame() {
     // Equation for moment change of coord frame in summary on page 111, MR 3rd print 2019
     Eigen::Vector3d m_w = r * m_s;
     Eigen::Vector3d f_s = r.transpose() * f_w;
+    std::cout << "Change reference frame of a wrench as measured by a force/torque sensor:" << std::endl;
     std::cout << "f_w: " << f_w.transpose() << std::endl;
     std::cout << "m_w: " << m_w.transpose() << std::endl << std::endl;
     std::cout << "f_s: " << f_s.transpose() << std::endl;

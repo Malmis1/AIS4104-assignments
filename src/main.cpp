@@ -7,6 +7,11 @@
 constexpr double deg_to_rad = std::numbers::pi / 180.0;
 constexpr double rad_to_deg = 180.0 / std::numbers::pi;
 
+bool double_equals(double a, double b, double epsilon = 0.000001) {
+    // Taken from feedback
+    return std::abs(a - b) < epsilon;
+}
+
 Eigen::Matrix3d skew_symmetric(Eigen::Vector3d vec) {
     // Equation (3.30) page 75, MR 3rd print 2019
     return Eigen::Matrix3d{ {0 , -vec[2], vec[1]},
@@ -120,11 +125,11 @@ Eigen::Vector3d euler_zyx_from_rotation_matrix(const Eigen::Matrix3d& r) {
     double gamma = std::atan2(r(2, 1), r(2, 2));
     double beta;
 
-    if (r(2, 0) == -1) {
+    if (double_equals(r(2, 0), -1.0)) {
         // Equal to pi/2
         beta = std::acos(0.0);
     }
-    else if (r(2, 0) == 1) {
+    else if (double_equals(r(2, 0), 1.0)) {
         // Equal to -pi/2
         beta = -std::acos(0.0);
     }
@@ -185,7 +190,7 @@ std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
     else {
         // Built in function in Eigen for Equation (3.54) on page 84, MR 3rd print 2019
         double trr = r.trace();
-        if (trr == -1) {
+        if (double_equals(trr, -1.0)) {
             theta = std::numbers::pi;
             // Equation (3.58) on page 85, MR 3rd print 2019
             w = (1.0 / std::sqrt(2.0 * (1.0 + r(2, 2))))
@@ -210,12 +215,12 @@ Eigen::Matrix4d matrix_exponential(const Eigen::Vector3d& w, const Eigen::Vector
     double radians = deg_to_rad * theta;
 
     // Proposition 3.25 on page 103, MR 3rd print 2019
-    if (w.norm() == 1) {
+    if (double_equals(w.norm(), 1.0)) {
         Eigen::Matrix3d r = matrix_exponential(w, theta);
         Eigen::Vector3d p = (Eigen::Matrix3d::Identity() * radians + (1 - std::cos(radians)) * skew_w + (radians - std::sin(radians)) * skew_w * skew_w) * v;
         m_e = transformation_matrix(r, p);
     }
-    else if ((w.norm() == 0) && (v.norm() == 1)) {
+    else if (double_equals(w.norm(), 0.0) && double_equals(v.norm(), 1.0)) {
         Eigen::Matrix3d r = Eigen::Matrix3d::Identity();
         Eigen::Vector3d p = v * theta;
         m_e = transformation_matrix(r, p);

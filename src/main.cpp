@@ -182,9 +182,10 @@ Eigen::Matrix3d matrix_exponential(const Eigen::Vector3d& w, double theta) {
 std::pair<Eigen::Vector3d, double> matrix_logarithm(const Eigen::Matrix3d& r) {
     Eigen::Vector3d w;
     double theta;
+    double epsilon = 0.000001;
 
     // Algorithm from page 85 (Equations (3.58)-(3.61) on pages 85-86), MR 3rd print 2019
-    if (r == Eigen::Matrix3d::Identity()) {
+    if (r.isApprox(Eigen::Matrix3d::Identity(), epsilon)) {
         theta = 0.0;
     }
     else {
@@ -236,9 +237,10 @@ std::pair<Eigen::VectorXd, double> matrix_logarithm(const Eigen::Matrix4d& t) {
     Eigen::Vector3d v;
     double h = 0.0;
     double theta;
+    double epsilon = 0.000001;
 
     // Algorithm in section 3.3.3.2 on page 104, MR 3rd print 2019
-    if (r == Eigen::Matrix3d::Identity()) {
+    if (r.isApprox(Eigen::Matrix3d::Identity(), epsilon)) {
         w = Eigen::Vector3d::Zero();
         v = p / p.norm();
         theta = p.norm();

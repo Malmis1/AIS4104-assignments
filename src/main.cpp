@@ -137,7 +137,7 @@ Eigen::Vector3d euler_zyx_from_rotation_matrix(const Eigen::Matrix3d& r) {
         beta = std::atan2(-r(2, 0), std::sqrt(std::pow(r(0, 0), 2) + std::pow(r(1, 0), 2)));
     }
 
-    return Eigen::Vector3d{ alpha, beta, gamma } *rad_to_deg;
+    return Eigen::Vector3d{ alpha, beta, gamma } * rad_to_deg;
 }
 
 Eigen::VectorXd twist(const Eigen::Vector3d& w, const Eigen::Vector3d& v) {
@@ -382,6 +382,35 @@ bool is_average_below_eps(const std::vector<double>& values, double eps = 10e-7,
     return (sum / n_values) < eps;
 }
 
+std::pair<uint32_t, double> newton_raphson_root_find(const std::function<double(double)>& f, double x_0, double dx_0 = 0.5, double eps = 10e-7) {
+    // Section 6.2.1 on page 225, MR 3rd print 2019
+    int max_iter = 1000;
+    int iter = 0;
+    double x = x_0 - f(x_0) / dx_0;
+    double h = 10e-8;
+
+    std::pair<uint32_t, double> result = { iter, x };
+    bool crit = false;
+
+    while (!crit && (iter < max_iter)) {
+        double fx = f(x);
+        // Derivative
+        double dfx = (f(x + h) - f(x)) / (h);
+        double x_1 = x - (fx / dfx);
+        double fx_1 = f(x_1);
+
+        result = { iter, x_1 };
+
+        // Stop at either criterion
+        crit = (std::fabs(fx - fx_1) <= eps) || (std::fabs(fx) <= eps);
+
+        x = x_1;
+        iter++;
+    }
+
+    return result;
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);
@@ -553,6 +582,22 @@ void ur3e_fk_transform_test() {
     }
 }
 
+void test_newton_raphson_root_find(const std::function<double(double)>& f, double x0)
+{
+    auto [iterations, x_hat] = newton_raphson_root_find(f, x0);
+    std::cout << "NR root f, x0=" << x0 << " -> it=" << iterations << " x=" << x_hat << " f(x)=" << f(x_hat) << std::endl;
+}
+
+void test_optimizations()
+{
+    std::cout << "Root finding tests" << std::endl;
+    auto f1 = [](double x)
+        {
+            return (x - 3.0) * (x - 3.0) - 1.0;
+        };
+    test_newton_raphson_root_find(f1, -20.0);
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -567,5 +612,6 @@ int main() {
     planar_3r_fk_screw_test();
     ur3e_fk_screw_test();
     ur3e_fk_transform_test();
+    test_optimizations();
     return 0;
 }

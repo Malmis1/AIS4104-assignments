@@ -421,6 +421,28 @@ std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> ur3e_space_chain() {
     return { m, screw_axes };
 }
 
+Eigen::Matrix4d ur3e_space_fk(const Eigen::VectorXd& joint_positions) {
+    std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> space_chain = ur3e_space_chain();
+    std::vector<Eigen::VectorXd> screw_axes = space_chain.second;
+
+    std::vector<Eigen::Vector3d> w_vals;
+    std::vector<Eigen::Vector3d> v_vals;
+    for (Eigen::VectorXd s : screw_axes) {
+        w_vals.push_back(s.block<3, 1>(0, 0));
+        v_vals.push_back(s.block<3, 1>(3, 0));
+    }
+
+    // Same as the ur3e_fk_screw function
+    Eigen::Matrix4d e_1 = matrix_exponential(w_vals[0], v_vals[0], joint_positions[0]);
+    Eigen::Matrix4d e_2 = matrix_exponential(w_vals[1], v_vals[1], joint_positions[1]);
+    Eigen::Matrix4d e_3 = matrix_exponential(w_vals[2], v_vals[2], joint_positions[2]);
+    Eigen::Matrix4d e_4 = matrix_exponential(w_vals[3], v_vals[3], joint_positions[3]);
+    Eigen::Matrix4d e_5 = matrix_exponential(w_vals[4], v_vals[4], joint_positions[4]);
+    Eigen::Matrix4d e_6 = matrix_exponential(w_vals[5], v_vals[5], joint_positions[5]);
+
+    return e_1 * e_2 * e_3 * e_4 * e_5 * e_6 * space_chain.first;
+}
+
 std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> ur3e_body_chain() {
     std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> space_chain = ur3e_space_chain();
 
@@ -690,6 +712,18 @@ void test_optimizations()
     test_gradient_descent_minimize(f1, -20.0);
 }
 
+void ur3e_test_fk() {
+    // Parameters do not need to be converted to rad
+    std::cout << "Forward kinematics tests" << std::endl;
+    print_pose("UR3e space fk 1", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0})));
+    std::cout << std::endl;
+    print_pose("UR3e space fk 2", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, 0.0, -90.0, 0.0, 0.0})));
+    std::cout << std::endl;
+    print_pose("UR3e space fk 3", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, -180.0, 0.0, 0.0, 0.0})));
+    std::cout << std::endl;
+    print_pose("UR3e space fk 4", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, -90.0, 0.0, 0.0, 0.0})));
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -704,6 +738,7 @@ int main() {
     planar_3r_fk_screw_test();
     ur3e_fk_screw_test();
     ur3e_fk_transform_test();
+    ur3e_test_fk();
     test_optimizations();
     return 0;
 }

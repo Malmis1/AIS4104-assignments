@@ -446,10 +446,10 @@ Eigen::Matrix4d ur3e_space_fk(const Eigen::VectorXd& joint_positions) {
 std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> ur3e_body_chain() {
     std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> space_chain = ur3e_space_chain();
 
-    Eigen::MatrixXd adj_m(6, 6);
-    adj_m = adjoint_matrix(space_chain.first);
-
     // Below equation (4.16) on page 147, MR 3rd print 2019
+    Eigen::MatrixXd adj_m(6, 6);
+    adj_m = adjoint_matrix(space_chain.first.inverse());
+
     std::vector<Eigen::VectorXd> b_screw_axes;
     for (Eigen::VectorXd s : space_chain.second) {
         Eigen::VectorXd b = adj_m * s;

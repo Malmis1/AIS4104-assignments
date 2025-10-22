@@ -660,7 +660,7 @@ void ur3e_fk_transform_test() {
         {0.0, -180.0, 0.0, 0.0, 0.0, 0.0},
         {0.0, -90.0, 0.0, 0.0, 0.0, 0.0}
     };
-    std::cout << "Planar 3R FK Transform using PoE:" << std::endl;
+    std::cout << "Planar 3R FK Transform using transform:" << std::endl;
     for (size_t i = 0; i < joint_configurations.size(); i++) {
         Eigen::Matrix4d tf = ur3e_fk_transform(joint_configurations[i]);
         print_pose("Joint configuration " + std::to_string(i + 1), tf);

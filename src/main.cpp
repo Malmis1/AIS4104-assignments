@@ -411,6 +411,36 @@ std::pair<uint32_t, double> newton_raphson_root_find(const std::function<double(
     return result;
 }
 
+std::pair<uint32_t, double> gradient_descent_minimize(const std::function<double(double)>& f, double x_0, double gamma = 0.1, double dx_0 = 0.5, double eps = 10e-7) {
+    // Similar to implementation of newton_raphson_root_find function
+    int max_iter = 1000;
+    int iter = 0;
+    double x = x_0;
+    double h = 10e-8;
+
+    std::pair<uint32_t, double> result = { iter, x };
+    bool crit = false;
+
+    while (!crit && (iter < max_iter)) {
+        double fx = f(x);
+        // Derivative
+        double dfx = (f(x + h) - fx) / h;
+        // Based on resources on gradient descent such as: https://www.researchgate.net/publication/375853994_A_Comprehensive_Overview_of_Gradient_Descent_and_its_Optimization_Algorithms
+        double x_1 = x - gamma * dfx;
+        double fx_1 = f(x_1);
+
+        result = { iter, x };
+
+        // Stop at either criterion (try minimizing by getting close to derivative being zero)
+        crit = (std::fabs(x - x_1) < eps || std::fabs(dfx) < eps);
+
+        x = x_1;
+        iter++;
+    }
+
+    return result;
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);
@@ -588,6 +618,12 @@ void test_newton_raphson_root_find(const std::function<double(double)>& f, doubl
     std::cout << "NR root f, x0=" << x0 << " -> it=" << iterations << " x=" << x_hat << " f(x)=" << f(x_hat) << std::endl;
 }
 
+void test_gradient_descent_minimize(const std::function<double(double)>& f, double x0)
+{
+    auto [iterations, x_hat] = gradient_descent_minimize(f, x0);
+    std::cout << "GD root f, x0=" << x0 << " -> it=" << iterations << " x=" << x_hat << " f(x)=" << f(x_hat) << std::endl;
+}
+
 void test_optimizations()
 {
     std::cout << "Root finding tests" << std::endl;
@@ -596,6 +632,7 @@ void test_optimizations()
             return (x - 3.0) * (x - 3.0) - 1.0;
         };
     test_newton_raphson_root_find(f1, -20.0);
+    test_gradient_descent_minimize(f1, -20.0);
 }
 
 int main() {

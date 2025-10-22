@@ -459,6 +459,19 @@ std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> ur3e_body_chain() {
     return { space_chain.first, b_screw_axes };
 }
 
+Eigen::Matrix4d ur3e_body_fk(const Eigen::VectorXd& joint_positions) {
+    std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> body_chain = ur3e_body_chain();
+
+    // Equation (4.16) on page 147, MR 3rd print 2019
+    Eigen::Matrix4d result = body_chain.first;
+    for (size_t i = 0; i < joint_positions.size(); i++) {
+        Eigen::VectorXd s = body_chain.second[i];
+        result = result * matrix_exponential(s.block<3, 1>(0, 0), s.block<3, 1>(3, 0), joint_positions[i]);
+    }
+
+    return result;
+}
+
 std::pair<uint32_t, double> newton_raphson_root_find(const std::function<double(double)>& f, double x_0, double dx_0 = 0.5, double eps = 10e-7) {
     // Section 6.2.1 on page 225, MR 3rd print 2019
     int max_iter = 1000;
@@ -716,12 +729,16 @@ void ur3e_test_fk() {
     // Parameters do not need to be converted to rad
     std::cout << "Forward kinematics tests" << std::endl;
     print_pose("UR3e space fk 1", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0})));
+    print_pose("UR3e body fk 1", ur3e_body_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0})));
     std::cout << std::endl;
     print_pose("UR3e space fk 2", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, 0.0, -90.0, 0.0, 0.0})));
+    print_pose("UR3e body fk 2", ur3e_body_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, 0.0, -90.0, 0.0, 0.0})));
     std::cout << std::endl;
     print_pose("UR3e space fk 3", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, -180.0, 0.0, 0.0, 0.0})));
+    print_pose("UR3e body fk 3", ur3e_body_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, -180.0, 0.0, 0.0, 0.0})));
     std::cout << std::endl;
     print_pose("UR3e space fk 4", ur3e_space_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, -90.0, 0.0, 0.0, 0.0})));
+    print_pose("UR3e body fk 4", ur3e_body_fk(std_vector_to_eigen(std::vector<double>{0.0, 0.0, -90.0, 0.0, 0.0, 0.0})));
 }
 
 int main() {

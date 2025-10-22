@@ -395,7 +395,7 @@ std::pair<uint32_t, double> newton_raphson_root_find(const std::function<double(
     while (!crit && (iter < max_iter)) {
         double fx = f(x);
         // Derivative
-        double dfx = (f(x + h) - f(x)) / (h);
+        double dfx = (f(x + h) - fx) / h;
         double x_1 = x - (fx / dfx);
         double fx_1 = f(x_1);
 

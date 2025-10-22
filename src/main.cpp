@@ -382,6 +382,45 @@ bool is_average_below_eps(const std::vector<double>& values, double eps = 10e-7,
     return (sum / n_values) < eps;
 }
 
+std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> ur3e_space_chain() {
+    // Based on ur3e_fk_screw function
+    double l1 = -243.5;
+    double l2 = -213.2;
+    double wi1 = 131.05;
+    double wi2 = 92.1;
+    double h1 = 151.8;
+    double h2 = 85.35;
+
+    Eigen::Vector3d w1{ 0, 0, 1 };
+    Eigen::Vector3d v1{ 0, 0, 0 };
+    Eigen::Vector3d w2{ 0, 1, 0 };
+    Eigen::Vector3d v2{ -h1, 0, 0 };
+    Eigen::Vector3d w3{ 0, 1, 0 };
+    Eigen::Vector3d v3{ -h1, 0, l1 };
+    Eigen::Vector3d w4{ 0, 1, 0 };
+    Eigen::Vector3d v4{ -h1, 0, 0 };
+    Eigen::Vector3d w5{ 0, 0, -1 };
+    Eigen::Vector3d v5{ -wi1, l1 + l2, 0 };
+    Eigen::Vector3d w6{ 0, 1, 0 };
+    Eigen::Vector3d v6{ h2 - h1, 0, l1 + l2 };
+
+    std::vector<Eigen::VectorXd> screw_axes;
+    for (std::pair<Eigen::Vector3d, Eigen::Vector3d> axis : { std::pair{w1, v1},std::pair{w2, v2},
+                                                              std::pair{w3, v3},std::pair{w4, v4},
+                                                              std::pair{w5, v5},std::pair{w6, v6} }) {
+        Eigen::VectorXd wv_pair(6);
+        wv_pair << axis.first, axis.second;
+        screw_axes.push_back(wv_pair);
+    }
+
+    Eigen::Matrix4d m{ {-1, 0, 0, l1 + l2},
+                   {0, 0, 1, wi1 + wi2},
+                   {0, 1, 0, h1 - h2},
+                   {0, 0, 0, 1} };
+
+    return { m, screw_axes };
+}
+
 std::pair<uint32_t, double> newton_raphson_root_find(const std::function<double(double)>& f, double x_0, double dx_0 = 0.5, double eps = 10e-7) {
     // Section 6.2.1 on page 225, MR 3rd print 2019
     int max_iter = 1000;

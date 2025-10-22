@@ -421,6 +421,22 @@ std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> ur3e_space_chain() {
     return { m, screw_axes };
 }
 
+std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> ur3e_body_chain() {
+    std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> space_chain = ur3e_space_chain();
+
+    Eigen::MatrixXd adj_m(6, 6);
+    adj_m = adjoint_matrix(space_chain.first);
+
+    // Below equation (4.16) on page 147, MR 3rd print 2019
+    std::vector<Eigen::VectorXd> b_screw_axes;
+    for (Eigen::VectorXd s : space_chain.second) {
+        Eigen::VectorXd b = adj_m * s;
+        b_screw_axes.push_back(b);
+    }
+
+    return { space_chain.first, b_screw_axes };
+}
+
 std::pair<uint32_t, double> newton_raphson_root_find(const std::function<double(double)>& f, double x_0, double dx_0 = 0.5, double eps = 10e-7) {
     // Section 6.2.1 on page 225, MR 3rd print 2019
     int max_iter = 1000;

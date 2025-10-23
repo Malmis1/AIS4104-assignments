@@ -562,14 +562,12 @@ Eigen::MatrixXd ur3e_body_jacobian(const Eigen::VectorXd& current_joint_position
     Eigen::MatrixXd j(6, 6);
     j.col(count - 1) = b[count - 1];
 
-    for (size_t i = 0; i < count; i++) {
+    for (int i = count - 2; i >= 0; i--) {
+        t = t * matrix_exponential(
+            -b[i + 1].block<3, 1>(0, 0),
+            -b[i + 1].block<3, 1>(3, 0),
+            current_joint_positions[i + 1]);
         j.col(i) = adjoint_matrix(t) * b[i];
-        if (i < count - 1) {
-            t = t * matrix_exponential(
-                -b[i + 1].block<3, 1>(0, 0),
-                -b[i + 1].block<3, 1>(3, 0),
-                current_joint_positions[i + 1]);
-        }
     }
 
     return j;

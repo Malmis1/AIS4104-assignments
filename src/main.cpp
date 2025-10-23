@@ -531,6 +531,27 @@ std::pair<uint32_t, double> gradient_descent_minimize(const std::function<double
     return result;
 }
 
+Eigen::MatrixXd ur3e_space_jacobian(const Eigen::VectorXd& current_joint_positions) {
+    std::pair<Eigen::Matrix4d, std::vector<Eigen::VectorXd>> space_chain = ur3e_space_chain();
+    std::vector<Eigen::VectorXd> s = space_chain.second;
+
+    // Equation (5.11) on page 178, MR 3rd print 2019
+    int count = 6;
+    Eigen::Matrix4d t = Eigen::Matrix4d::Identity();
+    Eigen::MatrixXd j(6, 6);
+    j.col(0) = s[0];
+
+    for (size_t i = 1; i < count; i++) {
+        j.col(i) = adjoint_matrix(t) * s[i];
+        t = t * matrix_exponential(
+            s[i - 1].block<3, 1>(0, 0),
+            s[i - 1].block<3, 1>(3, 0),
+            current_joint_positions[i - 1]);
+    }
+
+    return j;
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);

@@ -723,20 +723,17 @@ void ur3e_fk_transform_test() {
     }
 }
 
-void test_newton_raphson_root_find(const std::function<double(double)>& f, double x0)
-{
+void test_newton_raphson_root_find(const std::function<double(double)>& f, double x0) {
     auto [iterations, x_hat] = newton_raphson_root_find(f, x0);
     std::cout << "NR root f, x0=" << x0 << " -> it=" << iterations << " x=" << x_hat << " f(x)=" << f(x_hat) << std::endl;
 }
 
-void test_gradient_descent_minimize(const std::function<double(double)>& f, double x0)
-{
+void test_gradient_descent_minimize(const std::function<double(double)>& f, double x0) {
     auto [iterations, x_hat] = gradient_descent_minimize(f, x0);
     std::cout << "GD root f, x0=" << x0 << " -> it=" << iterations << " x=" << x_hat << " f(x)=" << f(x_hat) << std::endl;
 }
 
-void test_optimizations()
-{
+void test_optimizations() {
     std::cout << "Root finding tests" << std::endl;
     auto f1 = [](double x)
         {

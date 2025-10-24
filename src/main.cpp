@@ -341,7 +341,7 @@ Eigen::Matrix4d ur3e_fk_transform(const std::vector<double>& joint_positions) {
     // Based on Figure 4.6 (right) on page 146 and Equation (4.5) on page 136, MR 3rd print 2019
     Eigen::Matrix3d r_01 = rotate_z(joint_positions[0]);
     Eigen::Matrix3d r_12 = rotate_y(joint_positions[1]);
-    Eigen::Matrix3d r_23 = rotate_y(-joint_positions[2]);
+    Eigen::Matrix3d r_23 = rotate_y(joint_positions[2]);
     Eigen::Matrix3d r_34 = rotate_y(joint_positions[3]);
     Eigen::Matrix3d r_45 = rotate_z(-joint_positions[4]);
     Eigen::Matrix3d r_56 = rotate_y(joint_positions[5]);

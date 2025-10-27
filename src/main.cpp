@@ -573,6 +573,40 @@ Eigen::MatrixXd ur3e_body_jacobian(const Eigen::VectorXd& current_joint_position
     return j;
 }
 
+std::pair<size_t, Eigen::VectorXd> ur3e_ik_body(const Eigen::Matrix4d& t_sd, const Eigen::VectorXd& current_joint_positions, double gamma = 1e-2, double v_e = 4e-3, double w_e = 4e-3) {
+    // Inverse kinematics algorithm at bottom of page 228 and continuing on page 229, MR 3rd print 2019
+    size_t iter = 0;
+    size_t max_iter = 1000;
+
+    Eigen::VectorXd joint_positions(6);
+    Eigen::VectorXd previous_joint_positions(6);
+    joint_positions = current_joint_positions;
+    previous_joint_positions = current_joint_positions;
+
+    std::pair<size_t, Eigen::VectorXd> result = { iter, joint_positions };
+    bool crit = true;
+
+    while ((iter < max_iter) && crit) {
+        Eigen::Matrix4d t_sb_inv = ur3e_body_fk(joint_positions).inverse();
+        // Need to use static_case to specify which matrix_logarithm to use
+        std::pair<Eigen::VectorXd, double> vb = matrix_logarithm(static_cast<const Eigen::Matrix4d&>(t_sb_inv * t_sd));
+        crit = (vb.first.block<3, 1>(0, 0).norm() > w_e) || (vb.first.block<3, 1>(3, 0).norm() > v_e);
+
+        Eigen::MatrixXd j_pinv(6, 6);
+        // Built-in Eigen function for pseudoinverse
+        j_pinv = ur3e_body_jacobian(previous_joint_positions).completeOrthogonalDecomposition().pseudoInverse();
+
+        Eigen::VectorXd temp_joint_positions = joint_positions;
+        joint_positions = previous_joint_positions + gamma * j_pinv * vb.first;
+        previous_joint_positions = temp_joint_positions;
+
+        result = { iter, joint_positions };
+        iter++;
+    }
+
+    return result;
+}
+
 void print_pose(const std::string& label, const Eigen::Matrix4d& tf) {
     Eigen::Matrix3d r = tf.block<3, 3>(0, 0);
     Eigen::Vector3d p = tf.block<3, 1>(0, 3);
@@ -799,6 +833,42 @@ void ur3e_test_jacobian() {
     ur3e_test_jacobian(std_vector_to_eigen(std::vector<double>{45.0, -20.0, 10.0, 2.5, 30.0, -50.0})* deg_to_rad);
 }
 
+void ur3e_ik_test_pose(const Eigen::Vector3d& pos, const Eigen::Vector3d& zyx, const Eigen::VectorXd& j0) {
+    std::cout << "Test from pose" << std::endl;
+    Eigen::Matrix4d t_sd = transformation_matrix(rotation_matrix_from_euler_zyx(zyx), pos);
+    auto [iterations, j_ik] = ur3e_ik_body(t_sd, j0);
+    Eigen::Matrix4d t_ik = ur3e_body_fk(j_ik);
+    print_pose(" IK pose", t_ik);
+    print_pose("Desired pose", t_sd);
+    std::cout << "Converged after " << iterations << " iterations" << std::endl;
+    std::cout << "J_0: " << j0.transpose() * rad_to_deg << std::endl;
+    std::cout << "J_ik: " << j_ik.transpose() * rad_to_deg << std::endl << std::endl;
+}
+
+void ur3e_ik_test_configuration(const Eigen::VectorXd& joint_positions, const Eigen::VectorXd& j0) {
+    std::cout << "Test from configuration" << std::endl;
+    Eigen::Matrix4d t_sd = ur3e_space_fk(joint_positions);
+    auto [iterations, j_ik] = ur3e_ik_body(t_sd, j0);
+    Eigen::Matrix4d t_ik = ur3e_body_fk(j_ik);
+    print_pose("IK pose", t_ik);
+    print_pose("Desired pose", t_sd);
+    std::cout << "Converged after " << iterations << " iterations" << std::endl;
+    std::cout << "J_0: " << j0.transpose() * rad_to_deg << std::endl;
+    std::cout << "J_d: " << joint_positions.transpose() * rad_to_deg << std::endl;
+    std::cout << "J_ik: " << j_ik.transpose() * rad_to_deg << std::endl << std::endl;
+}
+
+void ur3e_ik_test() {
+    Eigen::VectorXd j_t0 = std_vector_to_eigen(std::vector<double>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0})* deg_to_rad;
+    Eigen::VectorXd j_t1 = std_vector_to_eigen(std::vector<double>{0.0, 0.0, -89.0, 0.0, 0.0, 0.0})* deg_to_rad;
+    ur3e_ik_test_pose(Eigen::Vector3d{ 0.3289, 0.22315, 0.36505 }, Eigen::Vector3d{ 0.0, 90.0, -90.0 } * deg_to_rad, j_t0);
+    ur3e_ik_test_pose(Eigen::Vector3d{ 0.3289, 0.22315, 0.36505 }, Eigen::Vector3d{ 0.0, 90.0, -90.0 } * deg_to_rad, j_t1);
+    Eigen::VectorXd j_t2 = std_vector_to_eigen(std::vector<double>{50.0, -30.0, 20, 0.0, -30.0, 50.0})* deg_to_rad;
+    Eigen::VectorXd j_d1 = std_vector_to_eigen(std::vector<double>{45.0, -20.0, 10.0, 2.5, 30.0, -50.0})* deg_to_rad;
+    ur3e_ik_test_configuration(j_d1, j_t0);
+    ur3e_ik_test_configuration(j_d1, j_t2);
+}
+
 int main() {
     skew_symmetric_test();
     rotation_matrix_test();
@@ -816,5 +886,6 @@ int main() {
     ur3e_test_fk();
     test_optimizations();
     ur3e_test_jacobian();
+    ur3e_ik_test();
     return 0;
 }

@@ -587,7 +587,7 @@ std::pair<size_t, Eigen::VectorXd> ur3e_ik_body(const Eigen::Matrix4d& t_sd, con
     bool crit = true;
 
     while ((iter < max_iter) && crit) {
-        Eigen::Matrix4d t_sb_inv = ur3e_body_fk(joint_positions).inverse();
+        Eigen::Matrix4d t_sb_inv = ur3e_body_fk(previous_joint_positions).inverse();
         // Need to use static_case to specify which matrix_logarithm to use
         std::pair<Eigen::VectorXd, double> vb = matrix_logarithm(static_cast<const Eigen::Matrix4d&>(t_sb_inv * t_sd));
         crit = (vb.first.block<3, 1>(0, 0).norm() > w_e) || (vb.first.block<3, 1>(3, 0).norm() > v_e);
